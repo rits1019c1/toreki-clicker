@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="東暦クリッカー — 問いを増やせ。答えを求めるな。哲学的放置系クリッカーゲーム。">
+  <title>東暦クリッカー</title>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+
+<body>
+
+  <!-- ============================================================
+       Language Selection Modal
+  ============================================================ -->
+  <div id="lang-modal">
+    <div class="lang-modal-inner">
+      <h1>東暦クリッカー</h1>
+      <p>言語を選択してください / Choose your language</p>
+      <div class="lang-grid">
+        <button class="lang-btn" data-lang="jp">
+          <span class="flag">🗾</span>日本語
+        </button>
+        <button class="lang-btn" data-lang="en">
+          <span class="flag">🌐</span>English
+        </button>
+        <button class="lang-btn" data-lang="ko">
+          <span class="flag">🇰🇷</span>한국어
+        </button>
+        <button class="lang-btn" data-lang="gfas">
+          <span class="flag">🌀</span>GFAS
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Main Game (hidden until language selected)
+  ============================================================ -->
+  <div id="game" class="hidden">
+
+    <!-- Header -->
+    <header id="header">
+      <span id="header-title">東暦クリッカー</span>
+
+      <div class="header-era">
+        <span id="era-display">東暦 2045年</span>
+        <div id="era-progress-bar-wrap">
+          <div id="era-progress-bar"></div>
+        </div>
+      </div>
+
+      <div id="route-indicator"></div>
+
+      <div class="header-right">
+        <button id="save-btn" class="icon-btn" title="Save">💾</button>
+        <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div id="main-content">
+
+      <!-- Left Panel: Buildings & Upgrades -->
+      <aside id="left-panel" class="side-panel">
+        <div class="panel-tabs">
+          <button class="tab-btn active" data-tab="buildings">建物</button>
+          <button class="tab-btn" data-tab="upgrades">強化</button>
+        </div>
+        <div id="buildings-tab" class="tab-content active"></div>
+        <div id="upgrades-tab" class="tab-content"></div>
+      </aside>
+
+      <!-- Center Panel: Click area -->
+      <main id="center-panel">
+
+        <!-- Question count display -->
+        <div id="question-display">
+          <div id="question-count">0</div>
+          <div id="question-label">Question</div>
+          <div id="qps-display">0 Q/秒</div>
+        </div>
+
+        <div class="q-a-divider" style="display:none;" id="q-a-divider"></div>
+
+        <!-- Answer count display -->
+        <div id="answer-display" class="hidden">
+          <div id="answer-count">0</div>
+          <div id="answer-label">Answer</div>
+          <div id="aps-display">0 A/秒</div>
+          <div id="cycle-display"></div>
+        </div>
+
+        <!-- Big click button -->
+        <div id="click-area">
+          <button id="click-btn" aria-label="Click to generate Questions">
+            <span class="question-glyph">？</span>
+          </button>
+        </div>
+
+        <!-- Click power -->
+        <div id="click-power-display">Click: +1</div>
+
+        <!-- Message log -->
+        <div id="message-log"></div>
+
+      </main>
+
+      <!-- Right Panel: Stats & Achievements & Rebirth -->
+      <aside id="right-panel" class="side-panel">
+        <div class="panel-tabs">
+          <button class="tab-btn active" data-tab="stats">統計</button>
+          <button class="tab-btn" data-tab="achievements">実績</button>
+          <button class="tab-btn" data-tab="perm-upgrades">恒久強化</button>
+        </div>
+        <div id="stats-tab" class="tab-content active"></div>
+        <div id="achievements-tab" class="tab-content"></div>
+        <div id="perm-upgrades-tab" class="tab-content">
+          <div class="perm-tab-header">転生ポイント</div>
+          <div class="perm-rp-display" id="rp-display">0</div>
+          <div id="perm-list"></div>
+          <div id="perm-locked-msg" class="perm-locked-msg"></div>
+        </div>
+
+        <div id="rebirth-section">
+          <div id="rebirth-info"></div>
+          <button id="rebirth-btn" disabled>転生</button>
+        </div>
+      </aside>
+
+    </div><!-- /main-content -->
+  </div><!-- /game -->
+
+  <!-- ============================================================
+       Settings Modal
+  ============================================================ -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">⚙️ Settings</div>
+
+      <div class="settings-section">
+        <div class="settings-label">Language</div>
+        <div class="settings-row">
+          <button class="settings-btn" data-lang="jp">🗾 日本語</button>
+          <button class="settings-btn" data-lang="en">🌐 English</button>
+          <button class="settings-btn" data-lang="ko">🇰🇷 한국어</button>
+          <button class="settings-btn" data-lang="gfas">🌀 GFAS</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Number Format</div>
+        <div class="settings-row">
+          <button class="settings-btn" data-unit="toki">東暦式</button>
+          <button class="settings-btn" data-unit="jp">日本語式</button>
+          <button class="settings-btn" data-unit="en">英語式</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Save / Load</div>
+        <div class="settings-file-row">
+          <button class="settings-action-btn" id="export-btn">📤 Export TXT</button>
+          <button class="settings-action-btn" id="import-btn">📥 Import TXT</button>
+          <input type="file" id="import-file-input" accept=".txt">
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Danger Zone</div>
+        <div class="settings-row">
+          <button class="settings-action-btn" id="reset-btn"
+            style="border-color:rgba(248,113,113,0.4);color:var(--danger)">🗑 Reset Save</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary modal-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Rebirth Modal
+  ============================================================ -->
+  <div id="rebirth-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">転生</div>
+      <div class="rebirth-reward-box">
+        <div class="rebirth-reward-label">転生で得られるもの</div>
+        <div class="rebirth-reward-val">+0 pts</div>
+      </div>
+      <div class="modal-body rebirth-warn"></div>
+      <div class="modal-actions">
+        <button class="btn-rebirth rebirth-yes-btn">転生する</button>
+        <button class="btn-secondary rebirth-no-btn">この時代を続ける</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Route Selection Modal
+  ============================================================ -->
+  <div id="route-modal" class="modal-overlay">
+    <div class="modal-box route-modal-box">
+      <div class="route-title" id="route-modal-title">時代の分岐点</div>
+      <div class="route-desc" id="route-modal-desc">
+        東暦2060年。<br>人類は問い続けることに疲れ果てた。<br>あなたはどちらの道を選びますか？
+      </div>
+      <div class="route-options">
+        <button class="route-q-btn" id="route-q-btn">
+          問い続ける
+          <span class="route-btn-sub" id="route-q-sub">Question生産ボーナス / Answer生産不可</span>
+        </button>
+        <button class="route-a-btn" id="route-a-btn">
+          答えを求める
+          <span class="route-btn-sub" id="route-a-sub">Answer生産解禁 / Question生産ペナルティ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Achievement Notification
+  ============================================================ -->
+  <div id="achieve-notif">
+    <div class="achieve-notif-icon">🏆</div>
+    <div class="achieve-notif-text">
+      <div class="achieve-notif-title">Achievement Unlocked!</div>
+      <div class="achieve-notif-name"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Global Tooltip
+  ============================================================ -->
+  <div id="global-tooltip">
+    <div class="tt-name" id="tt-name"></div>
+    <div class="tt-desc" id="tt-desc"></div>
+    <div class="tt-flavor" id="tt-flavor"></div>
+    <div class="tt-stats" id="tt-stats"></div>
+  </div>
+
+  <!-- Save toast -->
+  <div id="save-toast">💾 Saved</div>
+
+  <!-- QPS Buff Bar -->
+  <div id="qps-buff-bar">
+    <span class="buff-icon">⚡</span>
+    <span class="buff-label">QPS×10</span>
+    <div id="qps-buff-progress">
+      <div id="qps-buff-fill" style="width: 100%;"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Scripts — lang files first, then game engine
+  ============================================================ -->
+  <script src="lang/jp.js"></script>
+  <script src="lang/en.js"></script>
+  <script src="lang/ko.js"></script>
+  <script src="lang/gfas.js"></script>
+  <script src="src/index.js"></script>
+
+</body>
+
+</html>
