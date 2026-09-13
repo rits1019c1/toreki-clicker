@@ -32,7 +32,7 @@ window.LANGS.en = {
     langSelect: 'Choose your language',
     langSelectSub: '言語を選択してください',
     unitMode: 'Number Format',
-    unitToki: 'Toki',
+    unitToki: 'Toreki',
     unitJp: 'Japanese',
     unitEn: 'English',
     totalQ: 'Total Questions',
