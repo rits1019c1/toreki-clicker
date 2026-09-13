@@ -27,6 +27,7 @@ window.LANGS.en = {
     buy100: '×100',
     owned: 'Owned',
     cost: 'Cost',
+    requirement: 'Requirement',
     locked: '— Locked —',
     langSelect: 'Choose your language',
     langSelectSub: '言語を選択してください',

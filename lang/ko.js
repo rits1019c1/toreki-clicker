@@ -27,6 +27,7 @@ window.LANGS.ko = {
     buy100: "×100",
     owned: "보유",
     cost: "비용",
+    requirement: "필요 조건",
     locked: "— 미해금 —",
     langSelect: "언어를 선택하세요",
     langSelectSub: "Choose your language",

@@ -27,6 +27,7 @@ window.LANGS.jp = {
     buy100: '×100',
     owned: '所持',
     cost: 'コスト',
+    requirement: '必要条件',
     locked: '— 未解放 —',
     langSelect: '言語を選択してください',
     langSelectSub: 'Choose your language',

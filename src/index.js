@@ -361,11 +361,24 @@ function isUpgradeVisible(upg) {
   if (upg.type === 'a' && GS.route !== 'answer') return 0; // completely hidden
   const req = upg.req;
   if (!req) return 2; // fully visible
+
+  // 1. 完全非表示判定 (0)
   if (req.totalQ && GS.totalQuestionsEarned < req.totalQ * 0.25) return 0; // hidden until 25% of Q
   if (req.era && GS.era < req.era - 10) return 0; // hidden until 10 years before
+  if (req.buildings) {
+    for (const [bid] of Object.entries(req.buildings)) {
+      if ((GS.buildings[bid] || 0) < 1) return 0; // 該当建物を1個も持っていなければ非表示
+    }
+  }
 
+  // 2. シャドウ表示判定 (1: ???)
   if (req.totalQ && GS.totalQuestionsEarned < req.totalQ * 0.75) return 1; // shadow until 75%
   if (req.era && GS.era < req.era - 2) return 1; // shadow until 2 years before
+  if (req.buildings) {
+    for (const [bid, cnt] of Object.entries(req.buildings)) {
+      if ((GS.buildings[bid] || 0) < cnt) return 1; // 必要数未満ならシャドウ表示
+    }
+  }
 
   return 2; // fully visible
 }
@@ -1194,7 +1207,8 @@ function renderUpgrades() {
     currentIdx++;
 
     const purchased = GS.upgrades[upg.id];
-    const canAfford = upg.costA ? (GS.answers >= upg.costA) : (GS.questions >= upg.cost);
+    const available = isUpgradeAvailable(upg);
+    const canAfford = available && (upg.costA ? (GS.answers >= upg.costA) : (GS.questions >= upg.cost));
 
     if (vis === 1) {
       const targetClass = 'upgrade-card shadow';
@@ -1439,6 +1453,20 @@ function showTooltip(e, type, id) {
 
     tStats.textContent = statText;
     tStats.style.display = 'block';
+  } else if (type === 'upgrade') {
+    const upg = UPGRADES_DATA.find(u => u.id === id);
+    if (upg && upg.req && upg.req.buildings) {
+      const parts = [];
+      for (const [bid, cnt] of Object.entries(upg.req.buildings)) {
+        const bName = L.buildings[bid]?.name || bid;
+        const cur = GS.buildings[bid] || 0;
+        parts.push(`${bName} ×${cnt} (${L.ui.owned || '所持'}: ${cur})`);
+      }
+      tStats.textContent = `📋 ${L.ui.requirement || '必要条件'}: ${parts.join(', ')}`;
+      tStats.style.display = 'block';
+    } else {
+      tStats.style.display = 'none';
+    }
   } else {
     tStats.style.display = 'none';
   }

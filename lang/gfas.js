@@ -27,6 +27,7 @@ window.LANGS.gfas = {
     buy100: 'x100',
     owned: 'Øn',
     cost: 'Kɔst',
+    requirement: 'Rɛkwɪr',
     locked: '— Lɔkt —',
     langSelect: 'Tʃɯz Lɐng',
     langSelectSub: '言語を選択',
