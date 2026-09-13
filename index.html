@@ -168,6 +168,14 @@
       </div>
 
       <div class="settings-section">
+        <div class="settings-label">Debug</div>
+        <div class="settings-row">
+          <button class="settings-action-btn" id="debug-toggle-btn"
+            style="border-color:rgba(239,68,68,0.4);color:#ef4444;" onclick="window.DebugUI?.toggleDebug()">🐞 デバッグモード切替</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <div class="settings-label">Danger Zone</div>
         <div class="settings-row">
           <button class="settings-action-btn" id="reset-btn"
@@ -253,6 +261,85 @@
       <div id="qps-buff-fill" style="width: 100%;"></div>
     </div>
   </div>
+
+  <!-- ============================================================
+       Debug UI Panel
+  ============================================================ -->
+  <div id="debug-panel" class="debug-panel" style="display: none;">
+    <div class="debug-header">
+      <div class="debug-title">🐞 デバッグメニュー</div>
+      <div class="debug-header-btns">
+        <button id="debug-min-btn" class="debug-icon-btn" title="最小化" onclick="window.DebugUI.togglePanel()">_</button>
+        <button id="debug-close-btn" class="debug-icon-btn" title="閉じる" onclick="window.DebugUI.toggleDebug(false)">×</button>
+      </div>
+    </div>
+    <div class="debug-body">
+      <!-- 通貨付与 -->
+      <div class="debug-group">
+        <div class="debug-group-title">💰 通貨付与</div>
+        <div class="debug-btn-grid">
+          <button class="debug-btn" onclick="window.DebugUI.addQ(1e6)">+100万 Q</button>
+          <button class="debug-btn" onclick="window.DebugUI.addQ(1e8)">+1億 Q</button>
+          <button class="debug-btn" onclick="window.DebugUI.addQ(1e12)">+1兆 Q</button>
+          <button class="debug-btn" onclick="window.DebugUI.addA(1e6)">+100万 A</button>
+          <button class="debug-btn" onclick="window.DebugUI.addA(1e8)">+1億 A</button>
+          <button class="debug-btn" onclick="window.DebugUI.addRP(100)">+100 RP</button>
+        </div>
+      </div>
+
+      <!-- 時代・速度 -->
+      <div class="debug-group">
+        <div class="debug-group-title">⏳ 時代・速度</div>
+        <div class="debug-btn-grid">
+          <button class="debug-btn" onclick="window.DebugUI.addEra(10)">東暦 +10年</button>
+          <button class="debug-btn" onclick="window.DebugUI.setEra(2060)">2060年 (分岐)</button>
+          <button class="debug-btn" onclick="window.DebugUI.setEra(2100)">2100年 (終末)</button>
+          <button class="debug-btn" onclick="window.DebugUI.toggleSpeed(10)">速度 10倍</button>
+          <button class="debug-btn" onclick="window.DebugUI.toggleSpeed(100)">速度 100倍</button>
+          <button class="debug-btn" onclick="window.DebugUI.toggleSpeed(1)">速度 等倍</button>
+        </div>
+      </div>
+
+      <!-- 一括解放 -->
+      <div class="debug-group">
+        <div class="debug-group-title">🔓 解放・チート</div>
+        <div class="debug-btn-grid">
+          <button class="debug-btn" onclick="window.DebugUI.addBuildings(10)">全建物 +10</button>
+          <button class="debug-btn" onclick="window.DebugUI.setBuildings(100)">全建物 100</button>
+          <button class="debug-btn" onclick="window.DebugUI.unlockUpgrades()">全アプデ解禁</button>
+          <button class="debug-btn" onclick="window.DebugUI.unlockAchievements()">全実績解除</button>
+          <button class="debug-btn debug-btn-primary" onclick="window.DebugUI.unlockGod()">★ GODモード</button>
+        </div>
+      </div>
+
+      <!-- イベント・ルート -->
+      <div class="debug-group">
+        <div class="debug-group-title">✨ イベント・ルート</div>
+        <div class="debug-btn-grid">
+          <button class="debug-btn" onclick="window.DebugUI.spawnGolden()">黄金の問い召喚</button>
+          <button class="debug-btn" onclick="window.DebugUI.spawnUltimate()">究極の答え召喚</button>
+          <button class="debug-btn" onclick="window.DebugUI.setRoute('question')">ルート: Q</button>
+          <button class="debug-btn" onclick="window.DebugUI.setRoute('answer')">ルート: A</button>
+          <button class="debug-btn" onclick="window.DebugUI.setRoute(null)">ルート初期化</button>
+        </div>
+      </div>
+
+      <!-- システム -->
+      <div class="debug-group">
+        <div class="debug-group-title">⚙️ システム</div>
+        <div class="debug-btn-grid">
+          <button class="debug-btn" onclick="window.DebugUI.clearDebugFlag()">履歴消去</button>
+          <button class="debug-btn" onclick="window.DebugUI.resetData()">セーブ初期化</button>
+          <button class="debug-btn debug-btn-danger" onclick="window.DebugUI.toggleDebug(false)">デバッグOFF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug Floating Button (FAB) -->
+  <button id="debug-fab" class="debug-fab" style="display: none;" onclick="window.DebugUI.togglePanel()">
+    🐞 デバッグ
+  </button>
 
   <!-- ============================================================
        Scripts — lang files first, then game engine

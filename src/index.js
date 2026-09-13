@@ -626,10 +626,18 @@ function pickSpecialType() {
   return Math.random() < 0.5 ? 'golden' : 'ultimate';
 }
 
-function spawnSpecialBtn() {
-  if (activeSpecialBtn) return; // 既に表示中なら無視
+function spawnSpecialBtn(forcedType) {
+  if (activeSpecialBtn) {
+    if (forcedType) {
+      activeSpecialBtn.remove();
+      activeSpecialBtn = null;
+      if (specialBtnTimer) clearTimeout(specialBtnTimer);
+    } else {
+      return; // 既に表示中なら無視
+    }
+  }
 
-  const type = pickSpecialType();
+  const type = forcedType || pickSpecialType();
   const lifetime = type === 'golden' ? GOLDEN_Q_LIFETIME : ULTIMATE_A_LIFETIME;
 
   const btn = document.createElement('button');
@@ -1670,7 +1678,7 @@ function setBuyAmount(n) {
 }
 
 // ============================================================
-// WINDOW API
+// WINDOW API & DEBUG SYSTEM
 // ============================================================
 let debugMode = false;
 
@@ -1678,75 +1686,195 @@ function showToastSafe(msg, type) {
   if (typeof showToast === 'function') showToast(msg, type);
 }
 
+window.DebugUI = {
+  toggleDebug: function (forceState) {
+    const newState = (typeof forceState === 'boolean') ? forceState : !debugMode;
+    debugMode = newState;
+    document.body.classList.toggle('debug-mode', debugMode);
+
+    const panel = document.getElementById('debug-panel');
+    const fab = document.getElementById('debug-fab');
+    if (debugMode) {
+      if (panel) panel.style.display = 'flex';
+      if (fab) fab.style.display = 'none';
+      showToastSafe('🐞 デバッグモード起動', 'success');
+      console.warn('[DEBUG MODE ON]');
+    } else {
+      if (panel) panel.style.display = 'none';
+      if (fab) fab.style.display = 'none';
+      showToastSafe('デバッグモード終了', 'normal');
+      console.warn('[DEBUG MODE OFF]');
+    }
+  },
+
+  togglePanel: function () {
+    const panel = document.getElementById('debug-panel');
+    const fab = document.getElementById('debug-fab');
+    if (!panel || !fab) return;
+    const isVisible = panel.style.display !== 'none';
+    if (isVisible) {
+      panel.style.display = 'none';
+      fab.style.display = 'flex';
+    } else {
+      panel.style.display = 'flex';
+      fab.style.display = 'none';
+    }
+  },
+
+  addQ: function (n) {
+    GS.debugUsed = true;
+    GS.questions += n;
+    GS.totalQuestionsEarned += n;
+    checkAchievements();
+    renderAll();
+    showToastSafe(`Q +${fmt(n)} 付与`, 'info');
+  },
+
+  addA: function (n) {
+    GS.debugUsed = true;
+    GS.answers += n;
+    GS.totalAnswersEarned += n;
+    checkAchievements();
+    renderAll();
+    showToastSafe(`A +${fmt(n)} 付与`, 'info');
+  },
+
+  addRP: function (n) {
+    GS.debugUsed = true;
+    GS.rebirthPoints += n;
+    renderStats();
+    renderPermUpgrades();
+    showToastSafe(`RP +${n} 付与`, 'info');
+  },
+
+  addEra: function (years) {
+    GS.debugUsed = true;
+    GS.era += years;
+    checkAchievements();
+    renderAll();
+    showToastSafe(`東暦 +${years}年 (${GS.era}年)`, 'info');
+  },
+
+  setEra: function (era) {
+    GS.debugUsed = true;
+    GS.era = era;
+    checkAchievements();
+    renderAll();
+    showToastSafe(`東暦を ${era}年に設定`, 'info');
+  },
+
+  toggleSpeed: function (mult) {
+    GS.debugUsed = true;
+    GS.eraSpeedMult = mult;
+    showToastSafe(`時代速度: ${mult}倍`, 'info');
+  },
+
+  addBuildings: function (amount) {
+    GS.debugUsed = true;
+    for (const bd of BUILDINGS_DATA) {
+      GS.buildings[bd.id] = (GS.buildings[bd.id] || 0) + amount;
+    }
+    checkAchievements();
+    renderAll();
+    showToastSafe(`全建物 +${amount}個`, 'info');
+  },
+
+  setBuildings: function (count) {
+    GS.debugUsed = true;
+    for (const bd of BUILDINGS_DATA) {
+      GS.buildings[bd.id] = Math.max(GS.buildings[bd.id] || 0, count);
+    }
+    checkAchievements();
+    renderAll();
+    showToastSafe(`全建物を ${count}個以上に設定`, 'info');
+  },
+
+  unlockUpgrades: function () {
+    GS.debugUsed = true;
+    for (const upg of UPGRADES_DATA) {
+      if (!GS.upgrades[upg.id]) {
+        GS.upgrades[upg.id] = true;
+        applyUpgradeEffect(upg);
+      }
+    }
+    checkAchievements();
+    renderAll();
+    showToastSafe('全通常アップグレード解禁', 'info');
+  },
+
+  unlockAchievements: function () {
+    GS.debugUsed = true;
+    for (const def of ACHIEVEMENTS_DATA) {
+      GS.achievements[def.id] = true;
+    }
+    renderAchievements();
+    renderStats();
+    showToastSafe('全実績解除', 'info');
+  },
+
+  unlockGod: function () {
+    GS.debugUsed = true;
+    this.addQ(1e15);
+    this.addA(1e12);
+    this.addRP(1000);
+    this.setBuildings(100);
+    this.unlockUpgrades();
+    this.unlockAchievements();
+    showToastSafe('★ GODモード発動（全開放）', 'success');
+  },
+
+  spawnGolden: function () {
+    spawnSpecialBtn('golden');
+    showToastSafe('黄金の問いを召喚しました', 'warning');
+  },
+
+  spawnUltimate: function () {
+    spawnSpecialBtn('ultimate');
+    showToastSafe('究極の答えを召喚しました', 'warning');
+  },
+
+  setRoute: function (route) {
+    GS.debugUsed = true;
+    GS.route = route;
+    routeModalOpen = false;
+    closeModal('route-modal');
+    renderAll();
+    showToastSafe(`ルートを「${route || '未選択'}」に変更`, 'info');
+  },
+
+  clearDebugFlag: function () {
+    GS.debugUsed = false;
+    renderStats();
+    showToastSafe('デバッグ履歴フラグを消去しました', 'success');
+  },
+
+  resetData: function () {
+    if (confirm('【デバッグ】本当にセーブデータを初期化しますか？')) {
+      resetSave();
+    }
+  }
+};
+
 window.Game = {
   Win: function (name) {
     if (name === 'Developer') { unlockAchievement('developer'); showToast(L?.ui?.devConsoleHint || 'Achievement unlocked!', 'success'); }
   },
   state: () => GS,
-  give: (n) => { GS.debugUsed = true; GS.questions += n; GS.totalQuestionsEarned += n; renderAll(); },
-  giveA: (n) => { GS.debugUsed = true; GS.answers += n; GS.totalAnswersEarned += n; renderAll(); },
-  setEra: (n) => { GS.debugUsed = true; GS.era = n; renderAll(); },
+  give: (n) => window.DebugUI.addQ(n),
+  giveA: (n) => window.DebugUI.addA(n),
+  setEra: (n) => window.DebugUI.setEra(n),
 
   // ── Debug mode commands ──────────────────────────────────
   debug: {
     enabled: () => debugMode,
-
-    setQ: (n) => {
-      if (!debugMode) return '[debug] Not in debug mode.';
-      GS.debugUsed = true;
-      GS.questions = n; GS.totalQuestionsEarned = Math.max(GS.totalQuestionsEarned, n);
-      renderAll();
-      return `[debug] questions = ${n}`;
-    },
-    setA: (n) => {
-      if (!debugMode) return '[debug] Not in debug mode.';
-      GS.debugUsed = true;
-      GS.answers = n; GS.totalAnswersEarned = Math.max(GS.totalAnswersEarned, n);
-      renderAll();
-      return `[debug] answers = ${n}`;
-    },
-    setEra: (n) => {
-      if (!debugMode) return '[debug] Not in debug mode.';
-      GS.debugUsed = true;
-      GS.era = n;
-      checkAchievements();
-      renderAll();
-      return `[debug] era = ${n}`;
-    },
-    unlockAllBuildings: () => {
-      if (!debugMode) return '[debug] Not in debug mode.';
-      GS.debugUsed = true;
-      for (const bd of BUILDINGS_DATA) {
-        if (!GS.buildings[bd.id]) GS.buildings[bd.id] = 1;
-      }
-      renderAll();
-      return '[debug] all buildings unlocked (count set to at least 1).';
-    },
-    unlockAllUpgrades: () => {
-      if (!debugMode) return '[debug] Not in debug mode.';
-      GS.debugUsed = true;
-      for (const upg of UPGRADES_DATA) {
-        GS.upgrades[upg.id] = true;
-        applyUpgradeEffect(upg);
-      }
-      renderAll();
-      return '[debug] all upgrades unlocked.';
-    },
-    unlockAllAchievements: () => {
-      if (!debugMode) return '[debug] Not in debug mode.';
-      GS.debugUsed = true;
-      for (const def of ACHIEVEMENTS_DATA) GS.achievements[def.id] = true;
-      renderAchievements();
-      return '[debug] all achievements unlocked.';
-    },
-    unlockAll: () => {
-      if (!debugMode) return '[debug] Not in debug mode.';
-      GS.debugUsed = true;
-      window.Game.debug.unlockAllBuildings();
-      window.Game.debug.unlockAllUpgrades();
-      window.Game.debug.unlockAllAchievements();
-      return '[debug] everything unlocked.';
-    },
+    toggle: () => window.DebugUI.toggleDebug(),
+    setQ: (n) => { window.DebugUI.addQ(n - GS.questions); return `[debug] questions = ${n}`; },
+    setA: (n) => { window.DebugUI.addA(n - GS.answers); return `[debug] answers = ${n}`; },
+    setEra: (n) => { window.DebugUI.setEra(n); return `[debug] era = ${n}`; },
+    unlockAllBuildings: () => { window.DebugUI.setBuildings(1); return '[debug] all buildings unlocked.'; },
+    unlockAllUpgrades: () => { window.DebugUI.unlockUpgrades(); return '[debug] all upgrades unlocked.'; },
+    unlockAllAchievements: () => { window.DebugUI.unlockAchievements(); return '[debug] all achievements unlocked.'; },
+    unlockAll: () => { window.DebugUI.unlockGod(); return '[debug] everything unlocked.'; },
   },
 };
 
@@ -1754,12 +1882,7 @@ window.Game = {
 const DEBUG_PASSPHRASE = 'debug abc2045';
 window.console.log = (text) => {
   if (text === DEBUG_PASSPHRASE) {
-    debugMode = !debugMode;
-    document.body.classList.toggle('debug-mode', debugMode);
-    console.warn(debugMode
-      ? '[DEBUG MODE ON] window.Game.debug.{setQ, setA, setEra, unlockAllBuildings, unlockAllUpgrades, unlockAllAchievements, unlockAll}'
-      : '[DEBUG MODE OFF]');
-    showToastSafe(debugMode ? '🐞 DEBUG MODE ON' : 'DEBUG MODE OFF', debugMode ? 'success' : 'normal');
+    window.DebugUI.toggleDebug();
   } else if (text == "Hello World") {
     unlockAchievement('hello_world');
   } else {
@@ -1824,6 +1947,11 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     if ((e.code === 'Space' || e.code === 'Enter') && document.activeElement === document.body) {
       e.preventDefault(); document.getElementById('click-btn')?.click();
+    }
+    // Alt+D or Ctrl+Shift+D: Toggle Debug Mode
+    if ((e.altKey && e.code === 'KeyD') || (e.ctrlKey && e.shiftKey && e.code === 'KeyD')) {
+      e.preventDefault();
+      window.DebugUI?.toggleDebug();
     }
   });
 
